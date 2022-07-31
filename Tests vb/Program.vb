@@ -1,5 +1,5 @@
 Imports System
-Imports MyFirstAddIn.FirstExcelDnaAddIn_m
+Imports MacroFunctions_1._0_vb.FirstExcelDnaAddIn_m
 Imports System.Text
 
 Module Program

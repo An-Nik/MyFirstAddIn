@@ -64,9 +64,9 @@ Namespace My
     Friend Module MySettingsProperty
         
         <Global.System.ComponentModel.Design.HelpKeywordAttribute("My.Settings")>  _
-        Friend ReadOnly Property Settings() As Global.MyFirstAddIn.My.MySettings
+        Friend ReadOnly Property Settings() As Global.MacroFunctions_1._0_vb.My.MySettings
             Get
-                Return Global.MyFirstAddIn.My.MySettings.Default
+                Return Global.MacroFunctions_1._0_vb.My.MySettings.Default
             End Get
         End Property
     End Module

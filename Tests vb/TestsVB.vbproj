@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>TestsVB</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
+    <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MyFirstAddIn.vbproj" />
+    <ProjectReference Include="..\MacroFunctions 1.0 vb\MacroFunctions 1.0 vb.vbproj" />
   </ItemGroup>
 
 </Project>

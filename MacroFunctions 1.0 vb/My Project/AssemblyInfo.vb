@@ -8,17 +8,17 @@ Imports System.Runtime.InteropServices
 
 ' Проверьте значения атрибутов сборки
 
-<Assembly: AssemblyTitle("MyFirstAddIn")>
+<Assembly: AssemblyTitle("MacroFunctions 1.0 vb")>
 <Assembly: AssemblyDescription("")>
 <Assembly: AssemblyCompany("")>
-<Assembly: AssemblyProduct("MyFirstAddIn")>
+<Assembly: AssemblyProduct("MacroFunctions 1.0 vb")>
 <Assembly: AssemblyCopyright("Copyright ©  2022")>
 <Assembly: AssemblyTrademark("")>
 
 <Assembly: ComVisible(False)>
 
 'Указанный ниже идентификатор GUID предназначен для идентификации библиотеки типов, если этот проект будет видимым для COM-объектов
-<Assembly: Guid("b287d023-5d0f-4aa1-bf6d-adc47652e543")>
+<Assembly: Guid("38f773c6-6134-4875-92d3-8b83fca686f9")>
 
 ' Сведения о версии сборки состоят из указанных ниже четырех значений:
 '
