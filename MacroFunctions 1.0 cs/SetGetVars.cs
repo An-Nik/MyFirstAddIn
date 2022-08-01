@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+
 using ExcelDna.Integration;
 using Microsoft.Office.Interop;
 using System.Collections.Generic;
