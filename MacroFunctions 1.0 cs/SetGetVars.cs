@@ -8,21 +8,31 @@ using Microsoft.VisualBasic;
 using static Microsoft.VisualBasic.Interaction;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
+using System.Security;
 
 namespace MacroFunctions
 {
     public static class SetGetVars
     {
-        /*static SetGetVars()
+        [DllImport("Kernel32.dll"), SuppressUnmanagedCodeSecurity]
+        public static extern int GetCurrentProcessorNumber();
+
+        private static int[,] intVar;
+        private static double[,] doubVar;
+        private static string[,] strVar;
+        private static object[,] objVar;
+
+        static SetGetVars()
         {
             int procCount = Environment.ProcessorCount;
 
-            //
-            int[,] intArr = new int[8, procCount];
-            double[,] doubArr = new double[8, procCount];
-            string[,] strArr = new string[8, procCount];
-            object[,] objArr = new object[8, procCount];
-        }*/
+            //создать массивы для хранения переменных для каждого ядра
+            intVar = new int[16, procCount];
+            doubVar = new double[16, procCount];
+            strVar = new string[16, procCount];
+            objVar = new object[16, procCount];
+        }
 
         #region Call UDF from XLL надстройки 
 
@@ -208,6 +218,10 @@ namespace MacroFunctions
         {
             dictOfVars.Clear();
             dictOfArrays.Clear();
+            intVar.Initialize();
+            doubVar.Initialize();
+            strVar.Initialize();
+            objVar.Initialize();
             if (returnValue == null || returnValue is ExcelMissing)
                 return 0;
             else
@@ -217,73 +231,17 @@ namespace MacroFunctions
         #endregion
 
 
-        #region SetIntN / GetIntN
+        #region Int / GetIntN
 
-        private static long int1;
-        [ExcelFunction(Description = "Задать значение целочисленной переменной", Category = "ANik")]
+        [ExcelFunction(Description = "Задать значение одной из 16 целочисленных переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetInt1(
-                [ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                [ExcelArgument(Description = "Значение")] int varValue = 0,
+        public static object SetInt(
+                [ExcelArgument(Description = "Номер переменной от 0..15")]         /**/ int varNumber,
+                [ExcelArgument(Description = "Комментарий назначения переменной")] /**/ object descr = null,
+                [ExcelArgument(Description = "Значение")]                          /**/ int varValue = 0,
                 [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
         {
-            int1 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static long int2;
-        [ExcelFunction(Description = "Задать значение целочисленной переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetInt2([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Значение")] int varValue = 0,
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
-        {
-            int2 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static long int3;
-        [ExcelFunction(Description = "Задать значение целочисленной переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetInt3([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Значение")] int varValue = 0,
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
-        {
-            int3 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static long int4;
-        [ExcelFunction(Description = "Задать значение целочисленной переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetInt4([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Значение")] int varValue = 0,
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
-        {
-            int4 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static long int5;
-        [ExcelFunction(Description = "Задать значение целочисленной переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetInt5([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Значение")] int varValue = 0,
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
-        {
-            int5 = varValue;
+            intVar[varNumber, 0] = varValue;
             if (returnValue == null || returnValue is ExcelMissing)
                 return varValue;
             else
@@ -291,39 +249,39 @@ namespace MacroFunctions
         }
 
 
-        [ExcelFunction(Description = "Получить сохранённое значение целочисленной переменной", Category = "ANik")]
+        [ExcelFunction(Description = "Получить значение одной из 16 целочисленных переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetInt1([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
+        public static object GetInt(
+                [ExcelArgument(Description = "Номер переменной от 0..15")] /**/    int varNumber = 0,
+                [ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
         {
-            return int1;
+            return intVar[varNumber, 0];
         }
 
-        [ExcelFunction(Description = "Получить сохранённое значение целочисленной переменной", Category = "ANik")]
+
+        [ExcelFunction(Description = "Задать значение одной из 16 целочисленных переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetInt2([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
+        public static object SetTmpInt(
+                [ExcelArgument(Description = "Номер переменной от 0..15")]         /**/ int varNumber,
+                [ExcelArgument(Description = "Комментарий назначения переменной")] /**/ object descr = null,
+                [ExcelArgument(Description = "Значение")]                          /**/ int varValue = 0,
+                [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
         {
-            return int2;
+            intVar[varNumber, GetCurrentProcessorNumber()] = varValue;
+            if (returnValue == null || returnValue is ExcelMissing)
+                return varValue;
+            else
+                return returnValue;
         }
 
-        [ExcelFunction(Description = "Получить сохранённое значение целочисленной переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetInt3([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return int3;
-        }
 
-        [ExcelFunction(Description = "Получить сохранённое значение целочисленной переменной", Category = "ANik")]
+        [ExcelFunction(Description = "Получить значение одной из 16 целочисленных переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetInt4([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
+        public static object GetTmpInt(
+                [ExcelArgument(Description = "Номер переменной от 0..15")] /**/    int varNumber = 0,
+                [ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
         {
-            return int4;
-        }
-
-        [ExcelFunction(Description = "Получить сохранённое значение целочисленной переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetInt5([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return int5;
+            return intVar[varNumber, GetCurrentProcessorNumber()];
         }
 
         #endregion
@@ -331,109 +289,28 @@ namespace MacroFunctions
 
         #region SetDoubN / GetDoubN
 
-        private static double doub1;
-        [ExcelFunction(Description = "Задать значение дробной (вещественной) переменной", Category = "ANik")]
+        [ExcelFunction(Description = "Задать значение одной из 16 дробных (вещественных) переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetDoub1([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                               [ExcelArgument(Description = "Значение")] double varValue = 0,
-                               [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
+        public static object SetDoub(
+                [ExcelArgument(Description = "Комментарий назначения переменной")] /**/ object descr = null,
+                [ExcelArgument(Description = "Номер переменной от 0..15")]         /**/ int varNumber = 0,
+                [ExcelArgument(Description = "Значение")]                          /**/ double varValue = 0,
+                [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
         {
-            doub1 = varValue;
+            doubVar[varNumber, GetCurrentProcessorNumber()] = varValue;
             if (returnValue == null || returnValue is ExcelMissing)
                 return varValue;
             else
                 return returnValue;
         }
 
-        private static double doub2;
-        [ExcelFunction(Description = "Задать значение дробной (вещественной) переменной", Category = "ANik")]
+        
+        [ExcelFunction(Description = "Получить значение одной из 16 дробных (вещественных) переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetDoub2([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                               [ExcelArgument(Description = "Значение")] double varValue = 0,
-                               [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
+        public static object GetDoub([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
+                                      [ExcelArgument(Description = "Номер переменной от 0..15")] /**/    int varNumber = 0)
         {
-            doub2 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static double doub3;
-        [ExcelFunction(Description = "Задать значение дробной (вещественной) переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetDoub3([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                               [ExcelArgument(Description = "Значение")] double varValue = 0,
-                               [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
-        {
-            doub3 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static double doub4;
-        [ExcelFunction(Description = "Задать значение дробной (вещественной) переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetDoub4([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                               [ExcelArgument(Description = "Значение")] double varValue = 0,
-                               [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
-        {
-            doub4 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static double doub5;
-        [ExcelFunction(Description = "Задать значение дробной (вещественной) переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetDoub5([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                               [ExcelArgument(Description = "Значение")] double varValue = 0,
-                               [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
-        {
-            doub5 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        [ExcelFunction(Description = "Получить сохранённое значение дробной (вещественной) переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetDoub1([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return doub1;
-        }
-
-        [ExcelFunction(Description = "Получить сохранённое значение дробной (вещественной) переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetDoub2([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return doub2;
-        }
-
-        [ExcelFunction(Description = "Получить сохранённое значение дробной (вещественной) переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetDoub3([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return doub3;
-        }
-
-        [ExcelFunction(Description = "Получить сохранённое значение дробной (вещественной) переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetDoub4([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return doub4;
-        }
-
-        [ExcelFunction(Description = "Получить сохранённое значение дробной (вещественной) переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetDoub5([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return doub5;
+            return doubVar[varNumber, GetCurrentProcessorNumber()];
         }
 
         #endregion
@@ -441,110 +318,27 @@ namespace MacroFunctions
 
         #region SetStrN / GetStrN
 
-        private static string str1;
-        [ExcelFunction(Description = "Задать значение текстовой переменной", Category = "ANik")]
+        [ExcelFunction(Description = "Задать значение одной из 16 текстовых переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetStr1([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Значение")] string varValue = "",
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
+        public static object SetStr(
+                [ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
+                [ExcelArgument(Description = "Номер переменной от 0..15")]    /**/ int varNumber = 0,
+                [ExcelArgument(Description = "Значение")]                     /**/ string varValue = "",
+                [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
         {
-            str1 = varValue;
+            strVar[varNumber, GetCurrentProcessorNumber()] = varValue;
             if (returnValue == null || returnValue is ExcelMissing)
                 return varValue;
             else
                 return returnValue;
         }
 
-        private static string str2;
-        [ExcelFunction(Description = "Задать значение текстовой переменной", Category = "ANik")]
+        [ExcelFunction(Description = "Получить значение одной из 16 текстовых переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetStr2([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Значение")] string varValue = "",
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
+        public static object GetStr([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
+                                     [ExcelArgument(Description = "Номер переменной от 0..15")] /**/    int varNumber = 0)
         {
-            str2 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static string str3;
-        [ExcelFunction(Description = "Задать значение текстовой переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetStr3([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Значение")] string varValue = "",
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
-        {
-            str3 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static string str4;
-        [ExcelFunction(Description = "Задать значение текстовой переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetStr4([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Значение")] string varValue = "",
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
-        {
-            str4 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static string str5;
-        [ExcelFunction(Description = "Задать значение текстовой переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetStr5([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Значение")] string varValue = "",
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
-        {
-            str5 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-
-        [ExcelFunction(Description = "Получить сохранённое значение текстовой переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetStr1([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return str1;
-        }
-
-        [ExcelFunction(Description = "Получить сохранённое значение текстовой переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetStr2([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return str2;
-        }
-
-        [ExcelFunction(Description = "Получить сохранённое значение текстовой переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetStr3([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return str3;
-        }
-
-        [ExcelFunction(Description = "Получить сохранённое значение текстовой переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetStr4([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return str4;
-        }
-
-        [ExcelFunction(Description = "Получить сохранённое значение текстовой переменной", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetStr5([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return str5;
+            return strVar[varNumber, GetCurrentProcessorNumber()];
         }
 
         #endregion
@@ -819,87 +613,32 @@ namespace MacroFunctions
             return arrRow;
         }
 
-        #region SetArr 1..5
 
-        private static object arr1;
-        [ExcelFunction(Description = "Сохранить значения массива в переменную", Category = "ANik")]
+        #region SetArrN / GetArrN
+
+        [ExcelFunction(Description = "Сохранить значения массива в одну из 16 переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetArr1([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Массив")] object varValue = null,
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
+        public static object SetArr1(
+                [ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
+                [ExcelArgument(Description = "Номер переменной от 0..15")]    /**/ int varNumber = 0,
+                [ExcelArgument(Description = "Массив")]                       /**/ object varValue = null,
+                [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
         {
-            arr1 = varValue;
+            objVar[varNumber, GetCurrentProcessorNumber()] = varValue;
             if (returnValue == null || returnValue is ExcelMissing)
                 return varValue;
             else
                 return returnValue;
         }
 
-        private static object arr2;
-        [ExcelFunction(Description = "Сохранить значения массива в переменную", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetArr2([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Массив")] object varValue = null,
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
-        {
-            arr2 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static object arr3;
-        [ExcelFunction(Description = "Сохранить значения массива в переменную", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetArr3([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Массив")] object varValue = null,
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
-        {
-            arr3 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static object arr4;
-        [ExcelFunction(Description = "Сохранить значения массива в переменную", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetArr4([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Массив")] object varValue = null,
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
-        {
-            arr4 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        private static object arr5;
-        [ExcelFunction(Description = "Сохранить значения массива в переменную", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetArr5([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Массив")] object varValue = null,
-                              [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
-        {
-            arr5 = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-        #endregion
-
-        #region GetArr 1..5
 
         [ExcelFunction(Description = "Получить сохранённые значения массива", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetArr1([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Пропустить спереди")] object skip = null,
-                              [ExcelArgument(Description = "Взять заданное количество")] object take = null)
+        public static object GetArr1(
+                [ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
+                [ExcelArgument(Description = "Номер переменной от 0..15")]    /**/ int varNumber = 0,
+                [ExcelArgument(Description = "Пропустить спереди")]           /**/ object skip = null,
+                [ExcelArgument(Description = "Взять заданное количество")]    /**/ object take = null)
         {
             //если skip и take не заданы - вернуть полный массив
             if (skip is ExcelMissing) skip = null;
@@ -907,93 +646,14 @@ namespace MacroFunctions
 
             if (skip == null && take == null)
             {
-                return arr1;
+                return objVar[varNumber, GetCurrentProcessorNumber()];
             }
+            int currProcNum = GetCurrentProcessorNumber();
+            if (!objVar[varNumber, currProcNum].GetType().IsArray) return objVar[varNumber, currProcNum];
 
-            if (!arr1.GetType().IsArray) return arr1;
-
-            return GetArrayPart(arr1, skip, take);
+            return GetArrayPart(objVar[varNumber, currProcNum], skip, take);
         }
 
-        [ExcelFunction(Description = "Получить сохранённые значения массива", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetArr2([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Пропустить спереди")] object skip = null,
-                              [ExcelArgument(Description = "Взять заданное количество")] object take = null)
-        {
-            //если skip и take не заданы - вернуть полный массив
-            if (skip is ExcelMissing) skip = null;
-            if (take is ExcelMissing) take = null;
-
-            if (skip == null && take == null)
-            {
-                return arr2;
-            }
-
-            if (!arr2.GetType().IsArray) return arr2;
-
-            return GetArrayPart(arr2, skip, take);
-        }
-
-        [ExcelFunction(Description = "Получить сохранённые значения массива", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetArr3([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Пропустить спереди")] object skip = null,
-                              [ExcelArgument(Description = "Взять заданное количество")] object take = null)
-        {
-            //если skip и take не заданы - вернуть полный массив
-            if (skip is ExcelMissing) skip = null;
-            if (take is ExcelMissing) take = null;
-
-            if (skip == null && take == null)
-            {
-                return arr3;
-            }
-
-            if (!arr3.GetType().IsArray) return arr3;
-
-            return GetArrayPart(arr3, skip, take);
-        }
-
-        [ExcelFunction(Description = "Получить сохранённые значения массива", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetArr4([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Пропустить спереди")] object skip = null,
-                              [ExcelArgument(Description = "Взять заданное количество")] object take = null)
-        {
-            //если skip и take не заданы - вернуть полный массив
-            if (skip is ExcelMissing) skip = null;
-            if (take is ExcelMissing) take = null;
-
-            if (skip == null && take == null)
-            {
-                return arr4;
-            }
-
-            if (!arr4.GetType().IsArray) return arr4;
-
-            return GetArrayPart(arr4, skip, take);
-        }
-
-        [ExcelFunction(Description = "Получить сохранённые значения массива", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetArr5([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                              [ExcelArgument(Description = "Пропустить спереди")] object skip = null,
-                              [ExcelArgument(Description = "Взять заданное количество")] object take = null)
-        {
-            //если skip и take не заданы - вернуть полный массив
-            if (skip is ExcelMissing) skip = null;
-            if (take is ExcelMissing) take = null;
-
-            if (skip == null && take == null)
-            {
-                return arr5;
-            }
-
-            if (!arr5.GetType().IsArray) return arr5;
-
-            return GetArrayPart(arr5, skip, take);
-        }
         #endregion
 
         #endregion
