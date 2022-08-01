@@ -231,7 +231,7 @@ namespace MacroFunctions
         #endregion
 
 
-        #region Int / GetIntN
+        #region SetInt / GetIntN
 
         [ExcelFunction(Description = "Задать значение одной из 16 целочисленных переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
