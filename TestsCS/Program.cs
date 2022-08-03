@@ -4,37 +4,43 @@ using System;
 
 object q;
 
-Int64[] Arr1 = { 1, 2, 3 };
-SetTranspArr("q", Arr1);
-q = GetArr("q");
+ArrSet(1,new object[3]);
+ArrItemSet(1, 0, 1);
+ArrItemSet(1, 1, 2);
+ArrItemSet(1, 2, 3);
+q = ArrGet(1);
 
 
-Double[,] Arr2 = { { 1 }, { 2 }, { 3 } };
-SetTranspArr("q", Arr2);
-q = GetArr("q");
+Int16[] Arr1 = { 1, 2, 3 };
+Arr2SetTransp(1, Arr1);
+q = ArrGet(1);
 
 
-Byte[,] Arr3 = { { 1, 2, 3 }, { 4, 5, 6 } };
-SetTranspArr("q", Arr3);
-q = GetArr("q");
+Double[,] Arr2 = { { 1.1 }, { 0.2 }, { -3.0 } };
+Arr2SetTransp(1, Arr2);
+q = ArrGet(1);
+
+
+byte[,] Arr3 = { { 1, 2, 3 } };
+Arr2SetTransp(1, Arr3);
+q = ArrGet(1);
 
 
 string[,] Arr4 = { { "one" }, { "tw" }, { "tree" }, { "four" } };
-SetTranspArr("q", Arr4);
-q = GetArr("q");
+Arr2SetTransp(1, Arr4);
+q = ArrGet(1);
 
 
 string[] Arr5 = { "one", "two", "tree", "four" };
-SetTranspArr("q", Arr5);
-q = GetArr("q");
+Arr2SetTransp(1, Arr5);
+q = ArrGet(1);
 
 
-string[,] Arr = { { "one", "tw" }, { "tree", "four" } };
-SetTranspArr("q", Arr);
-q = GetArr("q");
+object[,] Arr = { { "one", "tw" }, { "tree", "four" } };
+Arr2SetTransp(1, Arr);
+q = ArrGet(1);
 
-q = GetArr("q", 1, 2);
-
+q = ArrGet(1, 1, 2);
 
 
 {
@@ -57,8 +63,8 @@ q = GetArr("q", 1, 2);
     object a = Arr1;
     object b = Marshal.SizeOf(Arr1.GetType().GetElementType());
 
-    SetArr("q", Arr1);
-    var q1 = GetArr("q", (long)1, 2);
+    ArrSet(1, Arr1);
+    var q1 = ArrGet(1, (long)1, 2);
     
 }
 object o = (Int32)24;

@@ -1,5 +1,4 @@
 using System;
-
 using ExcelDna.Integration;
 using Microsoft.Office.Interop;
 using System.Collections.Generic;
@@ -10,30 +9,25 @@ using static Microsoft.VisualBasic.Interaction;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-// remark1
 using System.Security;
 
 namespace MacroFunctions
 {
     public static class SetGetVars
     {
-        [DllImport("Kernel32.dll"), SuppressUnmanagedCodeSecurity]
-        public static extern int GetCurrentProcessorNumber();
+    //    [DllImport("Kernel32.dll"), SuppressUnmanagedCodeSecurity]
+    //    public static extern int GetCurrentProcessorNumber();
 
-        private static int[,] intVar;
-        private static double[,] doubVar;
-        private static string[,] strVar;
-        private static object[,] objVar;
+        private static object[] objVar = new object[16];
+        private static object[] objArr = new object[16];
 
         static SetGetVars()
         {
-            int procCount = Environment.ProcessorCount;
+            //int procCount = Environment.ProcessorCount;
 
             //создать массивы для хранения переменных для каждого ядра
-            intVar = new int[16, procCount];
-            doubVar = new double[16, procCount];
-            strVar = new string[16, procCount];
-            objVar = new object[16, procCount];
+            //objVar = new object[16];
+            //objArr = new object[16];
         }
 
         #region Call UDF from XLL надстройки 
@@ -41,11 +35,11 @@ namespace MacroFunctions
         public static Dictionary<string, object> dictOfWSheetObjects = new Dictionary<string, object>();
         const string _shName = "[TblWork_1.2.xlam]";
 
-        /*------------------------------------------------------------------------------------------------------------*/
         [ExcelFunction(Description = "Вызвать указанную UDF, определённую в той же книге, методом Run. Имя книги берётся из App.Caller", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
         public static object RunFunc_pa(string FuncName, params object[] Arr)
-        {   //               ``````````
+        /*------------------------------------------------------------------------------------------------------------*/
+        {
             var app = (Application)ExcelDnaUtil.Application;
             var callerCell = (Range)app.Caller;
             string callerCellAddr = callerCell.Address[true, true, XlReferenceStyle.xlA1, true];
@@ -56,11 +50,11 @@ namespace MacroFunctions
         }
 
 
-        /*------------------------------------------------------------------------------------------------------------*/
         [ExcelFunction(Description = "Вызвать указанную UDF, определённую в той же книге, методом Run. Имя книги берётся из App.Caller", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
         public static object RunFunc(string FuncName, object par1 = null, object par2 = null, object par3 = null, object par4 = null, object par5 = null)
-        {   //               ```````
+        /*------------------------------------------------------------------------------------------------------------*/
+        {
             var app = (Application)ExcelDnaUtil.Application;
             var callerCell = (Range)app.Caller;
             string callerCellAddr = callerCell.Address[true, true, XlReferenceStyle.xlA1, true];
@@ -95,10 +89,10 @@ namespace MacroFunctions
         }
 
 
-        /*------------------------------------------------------------------------------------------------------------*/
         [ExcelFunction(Description = "Вызвать указанную UDF либо из надстройки [TblWork_1.2.xlam] (тогда shName=''), либо из модуля рабочего листа (тогда shName='[имяКниги.расш]ИмяЛиста')", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
         public static object CallBN(string shName, string FuncName, object par1 = null, object par2 = null, object par3 = null, object par4 = null, object par5 = null)
+        /*------------------------------------------------------------------------------------------------------------*/
         {
             var app = (Application)ExcelDnaUtil.Application;
             object wsObject;
@@ -183,15 +177,17 @@ namespace MacroFunctions
         #endregion
 
 
-        #region SetVar / GetVar / ClearVarDict
+        #region NameSet, NameGet, NameDel
 
         private static Dictionary<string, object> dictOfVars = new Dictionary<string, object>();
 
-        [ExcelFunction(Description = "Задать значение переменной", Category = "ANik")]
+        [ExcelFunction(Description = "Задать значение переменной по имени", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetVar([ExcelArgument(Description = "Имя переменной")] string varName,
-                             [ExcelArgument(Description = "Значение")] object varValue,
-                             [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
+        public static object NameSet(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Имя переменной")] string varName,
+            [ExcelArgument(Description = "Значение")]  /**/ object varValue,
+            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
         {
             dictOfVars[varName] = varValue;
             if (returnValue == null || returnValue is ExcelMissing)
@@ -202,7 +198,8 @@ namespace MacroFunctions
 
         [ExcelFunction(Description = "Получить значение переменной по имени", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetVar([ExcelArgument(Description = "Имя переменной")] string varName)
+        public static object NameGet([ExcelArgument(Description = "Имя переменной")] string varName)
+        /*------------------------------------------------------------------------------------------------------------*/
         {
             if (!dictOfVars.TryGetValue(varName, out object varValue))
             {
@@ -214,16 +211,14 @@ namespace MacroFunctions
             }
         }
 
-        [ExcelFunction(Description = "Удалить все именные переменные", Category = "ANik")]
+        [ExcelFunction(Description = "Удалить именованную переменную из словаря", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object ClearVarDict(object returnValue = null)
+        public static object NameDel(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Имя переменной")] string varName,
+            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
         {
-            dictOfVars.Clear();
-            dictOfArrays.Clear();
-            intVar.Initialize();
-            doubVar.Initialize();
-            strVar.Initialize();
-            objVar.Initialize();
+            dictOfVars.Remove(varName);
             if (returnValue == null || returnValue is ExcelMissing)
                 return 0;
             else
@@ -233,17 +228,17 @@ namespace MacroFunctions
         #endregion
 
 
-        #region SetInt / GetIntN
+        #region VarSet, VarGet
 
-        [ExcelFunction(Description = "Задать значение одной из 16 целочисленных переменных", Category = "ANik")]
+        [ExcelFunction(Description = "Задать значение одной из 16 переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetInt(
-                [ExcelArgument(Description = "Номер переменной от 0..15")]         /**/ int varNumber,
-                [ExcelArgument(Description = "Комментарий назначения переменной")] /**/ object descr = null,
-                [ExcelArgument(Description = "Значение")]                          /**/ int varValue = 0,
-                [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
+        public static object VarSet(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Номер переменной от 0..15")]  /**/ int varNumber,
+            [ExcelArgument(Description = "Значение")]                   /**/ object varValue,
+            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
         {
-            intVar[varNumber, 0] = varValue;
+            objVar[varNumber] = varValue;
             if (returnValue == null || returnValue is ExcelMissing)
                 return varValue;
             else
@@ -251,129 +246,303 @@ namespace MacroFunctions
         }
 
 
-        [ExcelFunction(Description = "Получить значение одной из 16 целочисленных переменных", Category = "ANik")]
+        [ExcelFunction(Description = "Получить значение одной из 16 переменных", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetInt(
-                [ExcelArgument(Description = "Номер переменной от 0..15")] /**/    int varNumber = 0,
-                [ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return intVar[varNumber, 0];
-        }
-
-
-        [ExcelFunction(Description = "Задать значение одной из 16 целочисленных переменных", Category = "ANik")]
+        public static object VarGet(
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetTmpInt(
-                [ExcelArgument(Description = "Номер переменной от 0..15")]         /**/ int varNumber,
-                [ExcelArgument(Description = "Комментарий назначения переменной")] /**/ object descr = null,
-                [ExcelArgument(Description = "Значение")]                          /**/ int varValue = 0,
-                [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
+            [ExcelArgument(Description = "Номер переменной от 0..15")]  /**/ int varNumber,
+            [ExcelArgument(Description = "Название переменной/комментарий")] object descr = null)
         {
-            intVar[varNumber, GetCurrentProcessorNumber()] = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-
-        [ExcelFunction(Description = "Получить значение одной из 16 целочисленных переменных", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetTmpInt(
-                [ExcelArgument(Description = "Номер переменной от 0..15")] /**/    int varNumber = 0,
-                [ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null)
-        {
-            return intVar[varNumber, GetCurrentProcessorNumber()];
+            return objVar[varNumber];
         }
 
         #endregion
 
 
-        #region SetDoubN / GetDoubN
+        #region ArrInit, ArrSet, ArrGet, ArrItemSet, ArrItemGet, ArrGetAs2d
 
-        [ExcelFunction(Description = "Задать значение одной из 16 дробных (вещественных) переменных", Category = "ANik")]
+        private static Type elementType;
+
+        [ExcelFunction(Description = "Создать пустой одномерный массив", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetDoub(
-                [ExcelArgument(Description = "Комментарий назначения переменной")] /**/ object descr = null,
-                [ExcelArgument(Description = "Номер переменной от 0..15")]         /**/ int varNumber = 0,
-                [ExcelArgument(Description = "Значение")]                          /**/ double varValue = 0,
-                [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
+        public static object ArrInit(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Номер массива (от 0..15)")] int varNumber,
+            [ExcelArgument(Description = "Количество элементов")] /**/int count,
+            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
         {
-            doubVar[varNumber, GetCurrentProcessorNumber()] = varValue;
+            objArr[varNumber] = new object[count];
+            if (returnValue == null || returnValue is ExcelMissing)
+                return objArr[varNumber];
+            else
+                return returnValue;
+        }
+
+
+        [ExcelFunction(Description = "Сохранить массив в одну из 16 переменных", Category = "ANik")]
+        /*------------------------------------------------------------------------------------------------------------*/
+        public static object ArrSet(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Номер массива (от 0..15)")] int varNumber,
+            [ExcelArgument(Description = "Массив")]              /**/ object varValue,
+            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
+        {
+            objArr[varNumber] = varValue;
             if (returnValue == null || returnValue is ExcelMissing)
                 return varValue;
             else
                 return returnValue;
+        }
+
+
+        [ExcelFunction(Description = "Получить массив или часть массива", Category = "ANik")]
+        /*------------------------------------------------------------------------------------------------------------*/
+        public static object ArrGet(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Номер массива (от 0..15)")] /**/ int varNumber,
+            [ExcelArgument(Description = "Пропустить спереди")]       /**/ object skip = null,
+            [ExcelArgument(Description = "Извлекаемое количество")]   /**/ object take = null)
+        {
+            //если skip и take не заданы - вернуть полный массив
+            if (skip is ExcelMissing) skip = null;
+            if (take is ExcelMissing) take = null;
+
+            if (skip == null && take == null)
+            {
+                return objArr[varNumber];
+            }
+            if (!objArr[varNumber].GetType().IsArray) return objArr[varNumber];
+
+            return GetArrayPart(objArr[varNumber], skip, take);
+        }
+
+
+        [ExcelFunction(Description = "Задать значение элементу одномерного массива", Category = "ANik")]
+        /*------------------------------------------------------------------------------------------------------------*/
+        public static object ArrItemSet(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Номер массива (от 0..15)")]        /**/ int varNumber,
+            [ExcelArgument(Description = "Номер элемента массива (начиная с 1)")] int index,
+            [ExcelArgument(Description = "Значение")]                        /**/ object varValue,
+            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
+        {
+            //извлечь указанный массив
+            dynamic array = objArr[varNumber];
+
+            array[index - 1] = varValue;
+
+            if (returnValue == null || returnValue is ExcelMissing)
+                return varValue;
+            else
+                return returnValue;
+        }
+
+
+        [ExcelFunction(Description = "Получить значение элемента одномерного массива", Category = "ANik")]
+        /*------------------------------------------------------------------------------------------------------------*/
+        public static object ArrItemGet(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Номер переменной с массивом от 0..15 ")] int varNumber,
+            [ExcelArgument(Description = "Индекс элемента массива (начиная с 1)")] int index)
+        {
+            //извлечь нужный массив
+            dynamic array = objArr[varNumber];
+
+            return array[index - 1];
+        }
+
+
+        /*------------------------------------------------------------------------------------------------------------*/
+        private static object GetArrayPart(object oArr, object skip = null, object take = null)
+        /*------------------------------------------------------------------------------------------------------------*/
+        {
+            int iSkip, iTake;
+
+            if (!oArr.GetType().IsArray) return oArr;
+
+            var srcArr = (Array)oArr;
+
+            try
+            {
+                //проверка корректности skip
+                if (skip == null)
+                {
+                    if (take == null)
+                    {
+                        return oArr;
+                    }
+                    iSkip = 0;
+                }
+                else
+                {
+                    iSkip = Convert.ToInt32(skip);
+                }
+
+                //проверка корректности take
+                if (take == null)
+                {
+                    iTake = srcArr.Length - iSkip;
+                }
+                else
+                {
+                    iTake = Convert.ToInt32(take);
+                }
+
+                //проверка на корректность извлекаемого количества
+                if (iTake > srcArr.Length - iSkip || iTake < 1)
+                {
+                    iTake = srcArr.Length - iSkip;  //вернусть весь массив
+                }
+
+                //создать результирующий массив
+                Array destArr;
+                elementType = oArr.GetType().GetElementType();
+
+                if (srcArr.Rank == 1)
+                {
+                    destArr = Array.CreateInstance(elementType, iTake);
+                }
+                else if (srcArr.Rank == 2)
+                {
+                    destArr = Array.CreateInstance(elementType, 1, iTake);
+                }
+                else
+                {
+                    return XlCVError.xlErrValue;    //если вдруг размерностей больше 2х
+                }
+
+                Array.Copy(srcArr, iSkip, destArr, 0, iTake);
+                return destArr;
+            }
+            catch
+            {
+                return XlCVError.xlErrValue;
+            }
+        }
+
+        #endregion
+
+
+        #region Arr2Init, Arr2Set, Arr2Get, Arr2ItemSet, Arr2ItemGet, Arr2GetRow, Arr2SetTransp, Arr2GetAs1d
+
+        [ExcelFunction(Description = "Создать пустой двумерный массив", Category = "ANik")]
+        /*------------------------------------------------------------------------------------------------------------*/
+        public static object Arr2Init(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Номер массива (от 0..15)")] int varNumber,
+            [ExcelArgument(Description = "Количество строк")]    /**/ int rows,
+            [ExcelArgument(Description = "Количество столбцов")] /**/ int cols,
+            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
+        {
+            objArr[varNumber] = new object[rows,cols];
+            if (returnValue == null || returnValue is ExcelMissing)
+                return objArr[varNumber];
+            else
+                return returnValue;
+        }
+
+
+        [ExcelFunction(Description = "Сохранить массив в одну из 16 переменных", Category = "ANik")]
+        /*------------------------------------------------------------------------------------------------------------*/
+        public static object Arr2Set(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Номер массива (от 0..15)")] int varNumber,
+            [ExcelArgument(Description = "Массив")]              /**/ object varValue,
+            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
+        {
+            objArr[varNumber] = varValue;
+            if (returnValue == null || returnValue is ExcelMissing)
+                return varValue;
+            else
+                return returnValue;
+        }
+
+
+        [ExcelFunction(Description = "Получить массив", Category = "ANik")]
+        /*------------------------------------------------------------------------------------------------------------*/
+        public static object Arr2Get(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Номер массива (от 0..15)")] /**/ int varNumber)
+        {
+                return objArr[varNumber];
         }
 
         
-        [ExcelFunction(Description = "Получить значение одной из 16 дробных (вещественных) переменных", Category = "ANik")]
+        [ExcelFunction(Description = "Задать значение элементу двумерного массива", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetDoub([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                                      [ExcelArgument(Description = "Номер переменной от 0..15")] /**/    int varNumber = 0)
-        {
-            return doubVar[varNumber, GetCurrentProcessorNumber()];
-        }
-
-        #endregion
-
-
-        #region SetStrN / GetStrN
-
-        [ExcelFunction(Description = "Задать значение одной из 16 текстовых переменных", Category = "ANik")]
+        public static object Arr2ItemSet(
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetStr(
-                [ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                [ExcelArgument(Description = "Номер переменной от 0..15")]    /**/ int varNumber = 0,
-                [ExcelArgument(Description = "Значение")]                     /**/ string varValue = "",
-                [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
+            [ExcelArgument(Description = "Номер массива (от 0..15)")] /**/ int varNumber,
+            [ExcelArgument(Description = "Строка (начиная с 1)")]     /**/ int row,
+            [ExcelArgument(Description = "Столбец (начиная с 1)")]    /**/ int col,
+            [ExcelArgument(Description = "Значение")]                 /**/ object varValue,
+            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
         {
-            strVar[varNumber, GetCurrentProcessorNumber()] = varValue;
+            //извлечь указанный массив
+            dynamic array = objArr[varNumber];
+
+            array[row - 1, col - 1] = varValue;
+
             if (returnValue == null || returnValue is ExcelMissing)
                 return varValue;
             else
                 return returnValue;
         }
 
-        [ExcelFunction(Description = "Получить значение одной из 16 текстовых переменных", Category = "ANik")]
+
+        [ExcelFunction(Description = "Получить значение элемента двумерного массива", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetStr([ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                                     [ExcelArgument(Description = "Номер переменной от 0..15")] /**/    int varNumber = 0)
+        public static object Arr2ItemGet(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Номер массива (от 0..15)")] int varNumber,
+            [ExcelArgument(Description = "Строка (начиная с 1)")] /**/int row,
+            [ExcelArgument(Description = "Столбец (начиная с 1)")]/**/int col)
         {
-            return strVar[varNumber, GetCurrentProcessorNumber()];
-        }
+            //извлечь нужный массив
+            dynamic array = objArr[varNumber];
 
-        #endregion
-
-
-        #region SetArr/SetArrN, GetArr/GetArrN, GetArrRow
-
-        private static Dictionary<string, object> dictOfArrays = new Dictionary<string, object>();
-        private static Type elementType;
-
-        /*------------------------------------------------------------------------------------------------------------*/
-        [ExcelFunction(Description = "Сохранить имя и значения массива в словаре", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetArr(
-                [ExcelArgument(Description = "Имя сохраняемого массива")] string arrName,
-                [ExcelArgument(Description = "Массив")] object Arr,
-                [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
-        {
-            dictOfArrays[arrName] = Arr;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return Arr;
-            else
-                return returnValue;
+            return array[row-1, col-1];
         }
 
 
+        [ExcelFunction(Description = "Получить строку массива", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
-        [ExcelFunction(Description = "Транспонировать массив и сохранить его в словаре под заданным именем", Category = "ANik")]
+        public static object Arr2GetRow(
         /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetTranspArr(
-                [ExcelArgument(Description = "Имя сохраняемого массива")] string arrName,
-                [ExcelArgument(Description = "Массив")] object array,
-                [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
+            [ExcelArgument(Description = "Номер массива (от 0..15) ")] int varNumber,
+            [ExcelArgument(Description = "Номер строки, начиная с 1")] int rowNumber)
+        {
+            //извлечь нужный массив
+            object oArr = objArr[varNumber];
+
+            if (!oArr.GetType().IsArray) return oArr;
+
+            dynamic srcArr = oArr;
+
+            //если массив одномерный - вернуть элемент по указанному индексу
+            if (srcArr.Rank == 1)
+                return srcArr[rowNumber - 1];   //т.к. решили строки номеровать с 1
+
+            //создать одномерный массив под извлекаемую строку
+            elementType = oArr.GetType().GetElementType();
+            int cols = srcArr.GetLength(1);
+            dynamic arrRow = Array.CreateInstance(elementType, cols);
+
+            for (int col = 0; col < cols; col++)
+            {
+                arrRow[col] = srcArr[rowNumber - 1, col];
+            }
+            return arrRow;
+        }
+
+
+        [ExcelFunction(Description = "Транспонировать массив и сохранить его в одну из 16 переменных", Category = "ANik")]
+        /*------------------------------------------------------------------------------------------------------------*/
+        public static object Arr2SetTransp(
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Номер массива (от 0..15)")] /**/ int varNumber,
+            [ExcelArgument(Description = "Массив")]                   /**/ object array,
+            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого")] object returnValue = null)
         {
             try
             {
@@ -390,20 +559,9 @@ namespace MacroFunctions
                 {
                     elementType = srcArr.GetType().GetElementType();
 
-                    //если массив текстовый, заполнять придётся вручную
-                    if (array is string[] txtSrcArr)
+                    //если элименты - простые типы значений, заполнить значениями можно исп. Buffer.BlockCopy
+                    if (elementType.IsValueType)
                     {
-                        string[,] txtDstArr = new string[1, srcArr.Length];
-
-                        for (int i = 0; i <= srcArr.Length - 1; i++)
-                        {
-                            txtDstArr[0, i] = txtSrcArr[i];
-                        }
-                        destArr = txtDstArr;
-                    }
-                    else
-                    {// массив не текстовый, заполнить значениями можно исп. Buffer.BlockCopy
-
                         int elSize = Marshal.SizeOf(elementType);
 
                         destArr = Array.CreateInstance(elementType, 1, srcArr.Length);        //размерности зад-ся с нуля
@@ -411,10 +569,22 @@ namespace MacroFunctions
 
                         //Array.Copy(srcArr, 0, destArr, 0, srcArr.Length - 1)		//не работает, т.к.разное кол-во размерностей
                     }
+                    else
+                    {// в массиве элементы ссылочного типа, заполнять придётся вручную
+
+                        dynamic txtSrcArr = array;
+                        object[,] txtDstArr = new object[1, srcArr.Length];
+
+                        for (int i = 0; i <= srcArr.Length - 1; i++)
+                        {
+                            txtDstArr[0, i] = txtSrcArr[i];
+                        }
+                        destArr = txtDstArr;
+                    }
                 }
                 else if (srcArr.Rank == 2)
                 {// транспонируемый массив - двумерный
-
+                
                     //тип элементов массива
                     elementType = srcArr.GetType().GetElementType();
 
@@ -459,7 +629,7 @@ namespace MacroFunctions
                     return XlCVError.xlErrValue;
                 }
 
-                dictOfArrays[arrName] = destArr;
+                objArr[varNumber] = destArr;
                 if (returnValue == null || returnValue is ExcelMissing)
                     return destArr;
                 else
@@ -471,200 +641,14 @@ namespace MacroFunctions
             }
         }
 
-
-        /*------------------------------------------------------------------------------------------------------------*/
-        private static object GetArrayPart(object oArr, object skip = null, object take = null)
-        {
-            int iSkip, iTake;
-            bool errSkip = false, errTake = false;
-
-            if (!oArr.GetType().IsArray) return oArr;
-
-            var srcArr = (Array)oArr;
-
-            if (skip == null)
-            {
-                if (take == null)
-                {
-                    return oArr;
-                }
-                iSkip = 0;
-            }
-
-            try
-            {
-                iSkip = Convert.ToInt32(skip);
-            }
-            catch
-            {
-                errSkip = true;
-                iSkip = 0;
-            }
-
-            try
-            {
-                if (take == null)
-                {
-                    iTake = srcArr.Length - iSkip;
-                }
-                iTake = Convert.ToInt32(take);
-            }
-            catch
-            {
-                errTake = true;
-                iTake = srcArr.Length - iSkip;
-            }
-
-            //если skip или take невозможно преобр. в int - вернуть ошибку
-            if (errSkip || errTake)
-            {
-                return XlCVError.xlErrValue;
-            }
-
-            try
-            {
-                //проверка на корректность iTake
-                if (iTake > srcArr.Length - iSkip || iTake < 1)
-                {
-                    iTake = srcArr.Length - iSkip;  //вернусть весь массив
-                }
-
-                //создать результирующий массив
-                Array destArr;
-                elementType = oArr.GetType().GetElementType();
-
-                if (srcArr.Rank == 1)
-                {
-                    destArr = Array.CreateInstance(elementType, iTake);
-                }
-                else if (srcArr.Rank == 2)
-                {
-                    destArr = Array.CreateInstance(elementType, 1, iTake);
-                }
-                else
-                {
-                    return oArr;    //если вдруг размерностей больше 2х
-                }
-
-                Array.Copy(srcArr, iSkip, destArr, 0, iTake);
-                return destArr;
-            }
-            catch
-            {
-                return XlCVError.xlErrValue;
-            }
-        }
-
-
-        /*------------------------------------------------------------------------------------------------------------*/
-        [ExcelFunction(Description = "Получить сохранённые значения массива по его имени", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetArr(
-                      [ExcelArgument(Description = "Имя массива")] string arrName,
-                      [ExcelArgument(Description = "Пропустить спереди")] object skip = null,
-                      [ExcelArgument(Description = "Взять заданное количество")] object take = null)
-        {
-            if (!dictOfArrays.TryGetValue(arrName, out object oArr))
-            {
-                return XlCVError.xlErrValue;
-            }
-
-            //если skip и take не заданы - вернуть полный массив
-            if (skip is ExcelMissing) skip = null;
-            if (take is ExcelMissing) take = null;
-
-            if (skip == null && take == null)
-            {
-                return oArr;
-            }
-
-            if (!oArr.GetType().IsArray) return oArr;
-
-            return GetArrayPart(oArr, skip, take);
-        }
-
-        /*------------------------------------------------------------------------------------------------------------*/
-        [ExcelFunction(Description = "Получить строку массива", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetArrRow([ExcelArgument(Description = "Имя переменной, где сохранён массив")] string arrName,
-                                        [ExcelArgument(Description = "Номер строки, начиная с 1")] int rowNumber)
-        {
-            //извлечь массив из словаря
-            if (!dictOfArrays.TryGetValue(arrName, out object oArr))
-            {
-                return XlCVError.xlErrValue;
-            }
-
-            if (!oArr.GetType().IsArray) return oArr;
-
-            dynamic srcArr = oArr;
-
-            //если массив одномерный - вернуть элемент по указанному индексу
-            if (srcArr.Rank == 1)
-                return srcArr[rowNumber - 1];   //т.к. решили строки номеровать с 1
-
-            //создать одномерный массив под извлекаемую строку
-            elementType = oArr.GetType().GetElementType();
-            int cols = srcArr.GetLength(1);
-            dynamic arrRow = Array.CreateInstance(elementType, cols);
-
-            for (int col = 0; col < cols; col++)
-            {
-                arrRow[col] = srcArr[rowNumber - 1, col];
-            }
-            return arrRow;
-        }
-
-
-        #region SetArrN / GetArrN
-
-        [ExcelFunction(Description = "Сохранить значения массива в одну из 16 переменных", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object SetArr1(
-                [ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                [ExcelArgument(Description = "Номер переменной от 0..15")]    /**/ int varNumber = 0,
-                [ExcelArgument(Description = "Массив")]                       /**/ object varValue = null,
-                [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
-        {
-            objVar[varNumber, GetCurrentProcessorNumber()] = varValue;
-            if (returnValue == null || returnValue is ExcelMissing)
-                return varValue;
-            else
-                return returnValue;
-        }
-
-
-        [ExcelFunction(Description = "Получить сохранённые значения массива", Category = "ANik")]
-        /*------------------------------------------------------------------------------------------------------------*/
-        public static object GetArr1(
-                [ExcelArgument(Description = "Комментарий назначения переменной")] object descr = null,
-                [ExcelArgument(Description = "Номер переменной от 0..15")]    /**/ int varNumber = 0,
-                [ExcelArgument(Description = "Пропустить спереди")]           /**/ object skip = null,
-                [ExcelArgument(Description = "Взять заданное количество")]    /**/ object take = null)
-        {
-            //если skip и take не заданы - вернуть полный массив
-            if (skip is ExcelMissing) skip = null;
-            if (take is ExcelMissing) take = null;
-
-            if (skip == null && take == null)
-            {
-                return objVar[varNumber, GetCurrentProcessorNumber()];
-            }
-            int currProcNum = GetCurrentProcessorNumber();
-            if (!objVar[varNumber, currProcNum].GetType().IsArray) return objVar[varNumber, currProcNum];
-
-            return GetArrayPart(objVar[varNumber, currProcNum], skip, take);
-        }
-
-        #endregion
-
         #endregion
 
 
         [ExcelFunction(Description = "Вывод результата макро функции", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
         public static object Macro([ExcelArgument(Description = "Тело макро функции")] object FormuLa,
-                            [ExcelArgument(Description = "Формула для вывода результата")] object Result = null)
+        /*------------------------------------------------------------------------------------------------------------*/
+            [ExcelArgument(Description = "Формула для вывода результата")] object Result = null)
         {
             if (Result is ExcelMissing)
             {
@@ -680,13 +664,16 @@ namespace MacroFunctions
         [ExcelFunction(Description = "Сцепить два массива", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
         public static object ConcatArr([ExcelArgument(Description = "Массив 1")] object[] arr1, [ExcelArgument(Description = "Массив 2")] object[] arr2)
+        /*------------------------------------------------------------------------------------------------------------*/
         {
             return arr1.Concat(arr2).ToArray();
         }
 
+
         [ExcelFunction(Description = "My first .NET function", Category = "ANik")]
         /*------------------------------------------------------------------------------------------------------------*/
         public static string HelloR([ExcelArgument(Description = "Имя кого поприветствовать")] string Name)
+        /*------------------------------------------------------------------------------------------------------------*/
         {
             return "Hello " + Name;
         }
