@@ -4,10 +4,10 @@ using System;
 
 object q;
 
-ArrSet(1,new object[3]);
-ArrItemSet(1, 0, 1);
-ArrItemSet(1, 1, 2);
-ArrItemSet(1, 2, 3);
+ArrInit(1,3);
+ArrItemSet(1, 1, 1);
+ArrItemSet(1, 2, 2);
+ArrItemSet(1, 3, 3);
 q = ArrGet(1);
 
 
