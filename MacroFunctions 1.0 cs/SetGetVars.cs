@@ -177,13 +177,13 @@ namespace MacroFunctions
         #endregion
 
 
-        #region NameSet, NameGet, NameDel
+        #region SetName, GetName, NameDel
 
         private static Dictionary<string, object> dictOfVars = new Dictionary<string, object>();
 
         [ExcelFunction(Description = "Задать значение переменной по имени", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object NameSet(
+        public static object SetName(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Имя переменной")] string varName,
             [ExcelArgument(Description = "Значение")]  /**/ object varValue,
@@ -198,7 +198,7 @@ namespace MacroFunctions
 
         [ExcelFunction(Description = "Получить значение переменной по имени", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object NameGet([ExcelArgument(Description = "Имя переменной")] string varName)
+        public static object GetName([ExcelArgument(Description = "Имя переменной")] string varName)
         //--------------------------------------------------------------------------------------------------------------
         {
             if (!dictOfVars.TryGetValue(varName, out object varValue))
@@ -240,7 +240,7 @@ namespace MacroFunctions
 
         [ExcelFunction(Description = "Задать значение одной из 16 переменных", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object VarSet(
+        public static object SetVar(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер переменной от 0..15")]  /**/ int varNumber,
             [ExcelArgument(Description = "Значение")]                   /**/ object varValue,
@@ -256,7 +256,7 @@ namespace MacroFunctions
 
         [ExcelFunction(Description = "Получить значение одной из 16 переменных", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object VarGet(
+        public static object GetVar(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер переменной от 0..15")]  /**/ int varNumber,
             [ExcelArgument(Description = "Название переменной/комментарий")] object descr = null)
@@ -267,29 +267,13 @@ namespace MacroFunctions
         #endregion
 
 
-        #region ArrayInit, ArraySet, ArrayGet, ArrayItemSet, ArrayItemGet, ArrayConcat, ArrayGetAs2d
+        #region Arr1Init, SetArray, GetArray, SetArr1Item, GetArr1Item, ArrayConcat, GetArr1As2
 
         private static Type elementType;
 
-        [ExcelFunction(Description = "Создать пустой одномерный массив", Category = "ANik")]
-        //--------------------------------------------------------------------------------------------------------------
-        public static object ArrayInit(
-        //--------------------------------------------------------------------------------------------------------------
-            [ExcelArgument(Description = "Номер массива (от 0..15)")] int varNumber,
-            [ExcelArgument(Description = "Количество элементов")] /**/int count,
-            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
-        {
-            objArr[varNumber] = new object[count];
-            if (returnValue == null || returnValue is ExcelMissing)
-                return objArr[varNumber];
-            else
-                return returnValue;
-        }
-
-
         [ExcelFunction(Description = "Сохранить массив в одну из 16 переменных", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object ArraySet(
+        public static object SetArray(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер массива (от 0..15)")] int varNumber,
             [ExcelArgument(Description = "Массив")]              /**/ object varValue,
@@ -305,17 +289,17 @@ namespace MacroFunctions
 
         [ExcelFunction(Description = "Получить массив или часть массива", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object ArrayGet(
+        public static object GetArray(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер массива (от 0..15)")] /**/ int varNumber,
-            [ExcelArgument(Description = "Пропустить спереди")]       /**/ object skip = null,
-            [ExcelArgument(Description = "Извлекаемое количество")]   /**/ object take = null)
+            [ExcelArgument(Description = "Пропустить спереди")]       /**/ int skip = 0,
+            [ExcelArgument(Description = "Извлекаемое количество")]   /**/ int take = 0)
         {
             //если skip и take не заданы - вернуть полный массив
-            if (skip is ExcelMissing) skip = null;
-            if (take is ExcelMissing) take = null;
+            //if (skip is ExcelMissing) skip = null;
+            //if (take is ExcelMissing) take = null;
 
-            if (skip == null && take == null)
+            if (skip == 0/*null*/ && take == 0/*null*/)
             {
                 return objArr[varNumber];
             }
@@ -325,9 +309,25 @@ namespace MacroFunctions
         }
 
 
+        [ExcelFunction(Description = "Создать пустой одномерный массив", Category = "ANik")]
+        //--------------------------------------------------------------------------------------------------------------
+        public static object Arr1Init(
+        //--------------------------------------------------------------------------------------------------------------
+            [ExcelArgument(Description = "Номер массива (от 0..15)")] int varNumber,
+            [ExcelArgument(Description = "Количество элементов")] /**/int count,
+            [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
+        {
+            objArr[varNumber] = new object[count];
+            if (returnValue == null || returnValue is ExcelMissing)
+                return objArr[varNumber];
+            else
+                return returnValue;
+        }
+
+
         [ExcelFunction(Description = "Задать значение элементу одномерного массива", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object ArrayItemSet(
+        public static object Arr1ItemSet(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер массива (от 0..15)")]        /**/ int varNumber,
             [ExcelArgument(Description = "Номер элемента массива (начиная с 1)")] int index,
@@ -348,7 +348,7 @@ namespace MacroFunctions
 
         [ExcelFunction(Description = "Получить значение элемента одномерного массива", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object ArrayItemGet(
+        public static object Arr1ItemGet(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер массива (от 0..15)")]         /**/ int varNumber,
             [ExcelArgument(Description = "Индекс элемента массива (начиная с 1)")] int index)
@@ -377,7 +377,7 @@ namespace MacroFunctions
 
 
         //--------------------------------------------------------------------------------------------------------------
-        private static object GetArrayPart(object arraySrc, object skip = null, object take = null)
+        private static object GetArrayPart(object arraySrc, int? skip = null, int? take = null)
         //--------------------------------------------------------------------------------------------------------------
         {
             int iSkip, iTake;
@@ -399,7 +399,8 @@ namespace MacroFunctions
                 }
                 else
                 {
-                    iSkip = Convert.ToInt32(skip);
+                    //iSkip = Convert.ToInt32(skip);
+                    iSkip = (int)skip;
                 }
 
                 //проверка корректности take
@@ -409,7 +410,8 @@ namespace MacroFunctions
                 }
                 else
                 {
-                    iTake = Convert.ToInt32(take);
+                    //iTake = Convert.ToInt32(take);
+                    iTake = (int)take;
                 }
 
                 //проверка корректности извлекаемого количества
@@ -482,11 +484,11 @@ namespace MacroFunctions
         #endregion
 
 
-        #region ArrInit, ArrSet, ArrGet, ArrItemSet, ArrItemGet, ArrGetRow, ArrSetTransp, ArrGetAs1d
+        #region Arr2Init, (SetArr2, GetArr2), SetArr2Item, GetArr2Item, GetArr2Row, SetArr2Transp, GetArr2As1
 
         [ExcelFunction(Description = "Создать пустой двумерный массив", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object ArrInit(
+        public static object Arr2Init(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер массива (от 0..15)")] int varNumber,
             [ExcelArgument(Description = "Количество строк")]    /**/ int rows,
@@ -501,12 +503,13 @@ namespace MacroFunctions
         }
 
 
+        /* Arr2Set/Arr2Get
         [ExcelFunction(Description = "Сохранить массив в одну из 16 переменных", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object ArrSet(
+        public static object Arr2Set(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер массива (от 0..15)")] int varNumber,
-            [ExcelArgument(Description = "Массив")]              /**/ object varValue,
+            [ExcelArgument(Description = "Массив")]              /** / object varValue,
             [ExcelArgument(Description = "Необязательное возвращаемое значение вместо сохраняемого массива")] object returnValue = null)
         {
             objArr[varNumber] = varValue;
@@ -519,17 +522,17 @@ namespace MacroFunctions
 
         [ExcelFunction(Description = "Получить массив", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object ArrGet(
+        public static object Arr2Get(
         //--------------------------------------------------------------------------------------------------------------
-            [ExcelArgument(Description = "Номер массива (от 0..15)")] /**/ int varNumber)
+            [ExcelArgument(Description = "Номер массива (от 0..15)")] /** / int varNumber)
         {
             return objArr[varNumber];
-        }
+        }*/
 
 
         [ExcelFunction(Description = "Задать значение элементу двумерного массива", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object ArrItemSet(
+        public static object Arr2ItemSet(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер массива (от 0..15)")] /**/ int varNumber,
             [ExcelArgument(Description = "Строка (начиная с 1)")]     /**/ int row,
@@ -551,7 +554,7 @@ namespace MacroFunctions
 
         [ExcelFunction(Description = "Получить значение элемента двумерного массива", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object ArrItemGet(
+        public static object Arr2ItemGet(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер массива (от 0..15)")] int varNumber,
             [ExcelArgument(Description = "Строка (начиная с 1)")] /**/int row,
@@ -566,7 +569,7 @@ namespace MacroFunctions
 
         [ExcelFunction(Description = "Получить строку массива", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object ArrGetRow(
+        public static object Arr2GetRow(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер массива (от 0..15) ")] int varNumber,
             [ExcelArgument(Description = "Номер строки, начиная с 1")] int rowNumber)
@@ -597,7 +600,7 @@ namespace MacroFunctions
 
         [ExcelFunction(Description = "Транспонировать массив и сохранить его в одну из 16 переменных", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
-        public static object ArrSetTransp(
+        public static object Arr2SetTransp(
         //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Номер массива (от 0..15)")] /**/ int varNumber,
             [ExcelArgument(Description = "Массив")]                   /**/ object array,
@@ -707,10 +710,10 @@ namespace MacroFunctions
         #endregion
 
 
-        [ExcelFunction(Description = "Выполняет все функции в первом аргументе, а значение возвращет из второго", Category = "ANik")]
+        [ExcelFunction(Description = "Вычисляются все функции в первом аргументе, возвращается значение второго", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
         public static object Macro(
-        /*------------------------------------------------------------------------------------------------------------*/
+        //--------------------------------------------------------------------------------------------------------------
             [ExcelArgument(Description = "Тело макро функции")] object FormuLa,
             [ExcelArgument(Description = "Формула для вывода результата")] object Result = null)
         {
