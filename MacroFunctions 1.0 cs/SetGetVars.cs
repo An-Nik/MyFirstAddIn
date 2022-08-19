@@ -10,11 +10,42 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Security;
+using Microsoft.Win32;
 
 namespace MacroFunctions
 {
+    /*
+    [Guid("444815F5-A5BC-4D3F-A78F-CC036342B748")]
+    [ClassInterface(ClassInterfaceType.AutoDual)]
+    [ComVisible(true)] */
     public static class SetGetVars
     {
+        /*
+        [ComRegisterFunctionAttribute]
+        public static void RegisterFunction(Type type)
+        {
+            Registry.ClassesRoot.CreateSubKey(GetSubKeyName(type, "Programmable"));
+            RegistryKey key = Registry.ClassesRoot.OpenSubKey(GetSubKeyName(type, "InprocServer32"), true);
+            key.SetValue("", System.Environment.SystemDirectory + @"\mscoree.dll", RegistryValueKind.String);
+        }
+
+        [ComUnregisterFunctionAttribute]
+        public static void UnregisterFunction(Type type)
+        {
+            Registry.ClassesRoot.DeleteSubKey(GetSubKeyName(type, "Programmable"), false);
+        }
+
+        private static string GetSubKeyName(Type type, string subKeyName)
+        {
+            System.Text.StringBuilder s = new System.Text.StringBuilder();
+            s.Append(@"CLSID\{");
+            s.Append(type.GUID.ToString().ToUpper());
+            s.Append(@"}\");
+            s.Append(subKeyName);
+            return s.ToString();
+        }
+        */
+
         //    [DllImport("Kernel32.dll"), SuppressUnmanagedCodeSecurity]
         //    public static extern int GetCurrentProcessorNumber();
 
@@ -236,7 +267,7 @@ namespace MacroFunctions
         #endregion
 
 
-        #region VarSet, VarGet
+        #region SetVar, GetVar
 
         [ExcelFunction(Description = "Задать значение одной из 16 переменных", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
@@ -484,7 +515,7 @@ namespace MacroFunctions
         #endregion
 
 
-        #region Arr2Init, (SetArr2, GetArr2), SetArr2Item, GetArr2Item, GetArr2Row, SetArr2Transp, GetArr2As1
+        #region Arr2Init, (SetArr2, GetArr2), SetArr2Item, GetArr2Item, GetArr2Row, GetArr2Col, SetArr2Transp, GetArr2As1
 
         [ExcelFunction(Description = "Создать пустой двумерный массив", Category = "ANik")]
         //--------------------------------------------------------------------------------------------------------------
@@ -579,6 +610,17 @@ namespace MacroFunctions
 
             if (!oArr.GetType().IsArray) return oArr;
 
+            //поскольку в памяти данные хранятся построчно, то строки можно получить через Array.Copy()
+            Array srcArr = (Array)oArr;
+            int cols = srcArr.GetLength(1);
+            
+            var elementType = srcArr.GetType().GetElementType();
+            var destArr = Array.CreateInstance(elementType, 1, cols);   //двумерный массив, состоящий из одной строки
+            Array.Copy(srcArr, cols * (rowNumber - 1), destArr, 0, cols);
+
+            return destArr;
+
+            /*
             dynamic srcArr = oArr;
 
             //если массив одномерный - вернуть элемент по указанному индексу
@@ -593,6 +635,38 @@ namespace MacroFunctions
             for (int col = 0; col < cols; col++)
             {
                 arrRow[col] = srcArr[rowNumber - 1, col];
+            }
+            return arrRow;
+            */
+        }
+
+
+        [ExcelFunction(Description = "Получить столбец массива", Category = "ANik")]
+        //--------------------------------------------------------------------------------------------------------------
+        public static object Arr2GetCol(
+        //--------------------------------------------------------------------------------------------------------------
+            [ExcelArgument(Description = "Номер массива (от 0..15)  ")] int varNumber,
+            [ExcelArgument(Description = "Номер столбца, начиная с 1")] int colNumber)
+        {
+            //извлечь нужный массив
+            object oArr = objArr[varNumber];
+
+            if (!oArr.GetType().IsArray) return oArr;
+
+            dynamic srcArr = oArr;
+
+            //если массив одномерный - вернуть элемент по указанному индексу
+            if (srcArr.Rank == 1)
+                return srcArr[colNumber - 1];   //т.к. решили строки номеровать с 1
+
+            //создать одномерный массив под извлекаемую строку
+            elementType = oArr.GetType().GetElementType();
+            int rows = srcArr.GetLength(0);
+            dynamic arrRow = Array.CreateInstance(elementType, rows);
+
+            for (int row = 0; row < rows; row++)
+            {
+                arrRow[row] = srcArr[row, colNumber - 1];
             }
             return arrRow;
         }

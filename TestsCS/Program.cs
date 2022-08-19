@@ -4,36 +4,40 @@ using System;
 
 object q;
 
+Byte[,] Arr0 = { { 1, 2, 3 }, { 4, 5, 6 } };
+SetArray(0, Arr0);
+
+
 Int64[] Arr1 = { 1, 2, 3 };
-SetTranspArr("q", Arr1);
-q = GetArr("q");
+Arr2SetTransp(0, Arr1);
+q = GetArray(0);
 
 
 Double[,] Arr2 = { { 1 }, { 2 }, { 3 } };
-SetTranspArr("q", Arr2);
-q = GetArr("q");
+Arr2SetTransp(0, Arr2);
+q = GetArray(0);
 
 
 Byte[,] Arr3 = { { 1, 2, 3 }, { 4, 5, 6 } };
-SetTranspArr("q", Arr3);
-q = GetArr("q");
+Arr2SetTransp(0, Arr3);
+q = GetArray(0);
 
 
 string[,] Arr4 = { { "one" }, { "tw" }, { "tree" }, { "four" } };
-SetTranspArr("q", Arr4);
-q = GetArr("q");
+Arr2SetTransp(0, Arr4);
+q = GetArray(0);
 
 
 string[] Arr5 = { "one", "two", "tree", "four" };
-SetTranspArr("q", Arr5);
-q = GetArr("q");
+Arr2SetTransp(0, Arr5);
+q = GetArray(0);
 
 
 string[,] Arr = { { "one", "tw" }, { "tree", "four" } };
-SetTranspArr("q", Arr);
-q = GetArr("q");
+Arr2SetTransp(0, Arr);
+q = GetArray(0);
 
-q = GetArr("q", 1, 2);
+q = GetArray(0, 1, 2);
 
 
 
@@ -57,8 +61,8 @@ q = GetArr("q", 1, 2);
     object a = Arr1;
     object b = Marshal.SizeOf(Arr1.GetType().GetElementType());
 
-    SetArr("q", Arr1);
-    var q1 = GetArr("q", (long)1, 2);
+    SetArray(0, Arr1);
+    var q1 = GetArray(0, 1, 2);
     
 }
 object o = (Int32)24;
